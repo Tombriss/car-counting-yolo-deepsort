@@ -23,6 +23,8 @@ from deep_sort import preprocessing, nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
+import pandas as pd 
+
 flags.DEFINE_string('framework', 'tf', '(tf, tflite, trt')
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
@@ -92,11 +94,18 @@ def main(_argv):
 
     frame_num = 0
     # while video is running
+
+    data = []
+
+    fps = vid.get(cv2.CAP_PROP_FPS)
+    timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
+
     while True:
         return_value, frame = vid.read()
         if return_value:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = Image.fromarray(frame)
+            timestamps.append(vid.get(cv2.CAP_PROP_POS_MSEC))
         else:
             print('Video has ended or failed, try a different video format!')
             break
@@ -206,6 +215,8 @@ def main(_argv):
                 continue 
             bbox = track.to_tlbr()
             class_name = track.get_class()
+
+            data.append([track.track_id,frame_num,timestamps[-1],int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]),class_name])
             
         # draw bbox on screen
             color = colors[int(track.track_id) % len(colors)]
@@ -231,6 +242,9 @@ def main(_argv):
         if FLAGS.output:
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
+    
+    df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax'])
+    df_data.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
