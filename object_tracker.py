@@ -243,7 +243,7 @@ def main(_argv):
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
     
-    df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax'])
+    df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
     df_data.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
