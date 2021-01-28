@@ -243,12 +243,23 @@ def main(_argv):
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
                 print("Center : ({},{})".format(xcenter,ycenter))
 
+
+        df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
+        df_data.to_csv('outputs/data.csv', index=False)
+
+        clean_data = df_data.groupby("car").filter(lambda x: len(x) > 15)
+        n_vehicules = clean_data["car"].unique().shape[0]
+
+        # draw number vehicules on image
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(frame, str(n_vehicules), (original_w - 20,20), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
         print("FPS: %.2f" % fps)
+
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        
+
         if not FLAGS.dont_show:
             cv2.imshow("Output Video", result)
         
