@@ -209,12 +209,25 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
+        limy = 150
+
+        cv2.line(frame, (0, limy), (416, limy), (0, 255, 0), thickness=2)
+
         # update tracks
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue 
             bbox = track.to_tlbr()
             class_name = track.get_class()
+
+            xmin,ymin,xmax,ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+
+            xcenter = (xmin+xmax)/2
+            ycenter = (ymin+ymax)/2
+
+            if ycenter < limy:
+                continue
+
 
             data.append([track.track_id,frame_num,timestamps[-1],int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]),class_name])
             
@@ -228,6 +241,7 @@ def main(_argv):
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
+                print("Center : ({},{})".format(xcenter,ycenter)
 
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
