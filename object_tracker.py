@@ -247,9 +247,7 @@ def main(_argv):
 
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
-        df_final.append(df_data)
-        print(len(data))
-        print(len(df_final))
+        df_final = df_final.append(df_data)
         clean_data = df_final.groupby("car").filter(lambda x: len(x) > 15)
         n_vehicules = clean_data["car"].unique().shape[0]
 
