@@ -96,6 +96,7 @@ def main(_argv):
     # while video is running
 
     data = []
+    df_final = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
     fps = vid.get(cv2.CAP_PROP_FPS)
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
@@ -214,6 +215,7 @@ def main(_argv):
         cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
 
         # update tracks
+        data = []
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue 
@@ -245,14 +247,13 @@ def main(_argv):
 
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
-        df_data.to_csv('outputs/data.csv', index=False)
-
-        clean_data = df_data.groupby("car").filter(lambda x: len(x) > 15)
+        df_final.append(df_data)
+        clean_data = df_final.groupby("car").filter(lambda x: len(x) > 15)
         n_vehicules = clean_data["car"].unique().shape[0]
 
         # draw number vehicules on image
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(frame, str(n_vehicules), (original_w - 20,20), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, str(n_vehicules), (original_w - 50,50), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
         print("FPS: %.2f" % fps)
@@ -268,7 +269,6 @@ def main(_argv):
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
     
-    df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
     df_data.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
