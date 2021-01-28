@@ -253,6 +253,7 @@ def main(_argv):
 
         # draw number vehicules on image
         font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(frame, str(len(detections)), (original_w - 500,100), font, 3, (255, 0, 0), 2, cv2.LINE_AA)
         cv2.putText(frame, str(n_vehicules), (original_w - 200,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
