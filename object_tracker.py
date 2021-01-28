@@ -248,12 +248,14 @@ def main(_argv):
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
         df_final.append(df_data)
+        print(len(data))
+        print(len(df_finale))
         clean_data = df_final.groupby("car").filter(lambda x: len(x) > 15)
         n_vehicules = clean_data["car"].unique().shape[0]
 
         # draw number vehicules on image
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(frame, str(n_vehicules), (original_w - 50,50), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(frame, str(n_vehicules), (original_w - 100,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
         print("FPS: %.2f" % fps)
