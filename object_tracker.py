@@ -209,9 +209,9 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        limy = 150
+        limy = 175
 
-        cv2.line(frame, (0, limy), (416, limy), (0, 255, 0), thickness=2)
+        cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
 
         # update tracks
         for track in tracker.tracks:
