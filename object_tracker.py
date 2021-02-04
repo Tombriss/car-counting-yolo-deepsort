@@ -186,7 +186,7 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            if ycenter < 100:
+            if ycenter < 90:
                 deleted_indx.append(i)
                 continue
 
