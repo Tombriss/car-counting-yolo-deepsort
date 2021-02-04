@@ -40,12 +40,13 @@ flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 flags.DEFINE_float('nms', 0.5, 'nms max overlap') # 1
+flags.DEFINE_float('cosine', 0.4, 'max cosine distance') # 0.4
 
 def main(_argv):
     # Definition of the parameters
-    max_cosine_distance = 0.4 # 0.4
+    max_cosine_distance = FLAGS.cosine # 0.4
     nn_budget = None
-    nms_max_overlap = FLAGS.nms # 1.0
+    nms_max_overlap = FLAGS.nms # best : 0.5 
     
     # initialize deep sort
     model_filename = 'model_data/mars-small128.pb'
