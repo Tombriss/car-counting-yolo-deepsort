@@ -44,7 +44,7 @@ def main(_argv):
     # Definition of the parameters
     max_cosine_distance = 0.4 # 0.4
     nn_budget = None
-    nms_max_overlap = 1.0 # 1.0
+    nms_max_overlap = 0.5 # 1.0
     
     # initialize deep sort
     model_filename = 'model_data/mars-small128.pb'
