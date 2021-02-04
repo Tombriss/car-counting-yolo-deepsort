@@ -42,7 +42,7 @@ flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 
 def main(_argv):
     # Definition of the parameters
-    max_cosine_distance = 0.9 # 0.4
+    max_cosine_distance = 0.6 # 0.4
     nn_budget = None
     nms_max_overlap = 1.0 # 1.0
     
