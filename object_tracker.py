@@ -42,7 +42,7 @@ flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 
 def main(_argv):
     # Definition of the parameters
-    max_cosine_distance = 0.6 # 0.4
+    max_cosine_distance = 0.95 # 0.4
     nn_budget = None
     nms_max_overlap = 1.0 # 1.0
     
@@ -170,7 +170,7 @@ def main(_argv):
         #allowed_classes = list(class_names.values())
         
         # custom allowed classes (uncomment line below to customize tracker for only people)
-        allowed_classes = ['car,truck,motorbike']
+        allowed_classes = ["car","truck","motorbike"]
 
         # loop through objects and use class index to get class name, allow only classes in allowed_classes list
         names = []
