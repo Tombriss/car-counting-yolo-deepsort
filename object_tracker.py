@@ -177,7 +177,21 @@ def main(_argv):
         # loop through objects and use class index to get class name, allow only classes in allowed_classes list
         names = []
         deleted_indx = []
+        limy = 175
+
         for i in range(num_objects):
+            bbox = bboxes[i]
+
+            xmin,ymin,xmax,ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+
+            xcenter = (xmin+xmax)/2
+            ycenter = (ymin+ymax)/2
+
+            if ycenter < limy:
+                deleted_indx.append(i)
+                continue
+
+
             class_indx = int(classes[i])
             class_name = class_names[class_indx]
             if class_name not in allowed_classes:
