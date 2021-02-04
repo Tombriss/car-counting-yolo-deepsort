@@ -214,7 +214,22 @@ def main(_argv):
 
         limy = 175
 
-        cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
+        #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
+        
+        center_coordinates = (original_w // 2, 0)
+        
+        # Radius of circle
+        radius = 250
+        
+        # Blue color in BGR
+        color = (0, 255, 0)
+        
+        # Line thickness of 2 px
+        thickness = 2
+        
+        # Using cv2.circle() method
+        # Draw a circle with blue line borders of thickness of 2 px
+        cv2.circle(frame, center_coordinates, radius, color, thickness)
 
         # update tracks
         data = []
