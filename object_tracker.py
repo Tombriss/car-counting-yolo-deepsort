@@ -42,7 +42,7 @@ flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 
 def main(_argv):
     # Definition of the parameters
-    max_cosine_distance = 0.01 # 0.4
+    max_cosine_distance = 1 # 0.4
     nn_budget = None
     nms_max_overlap = 1.0 # 1.0
     
@@ -167,10 +167,10 @@ def main(_argv):
         class_names = utils.read_class_names(cfg.YOLO.CLASSES)
 
         # by default allow all classes in .names file
-        allowed_classes = list(class_names.values())
+        #allowed_classes = list(class_names.values())
         
         # custom allowed classes (uncomment line below to customize tracker for only people)
-        #allowed_classes = ['person']
+        allowed_classes = ['car,truck,motorbike']
 
         # loop through objects and use class index to get class name, allow only classes in allowed_classes list
         names = []
