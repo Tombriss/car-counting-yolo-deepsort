@@ -177,7 +177,6 @@ def main(_argv):
         # loop through objects and use class index to get class name, allow only classes in allowed_classes list
         names = []
         deleted_indx = []
-        limy = 175
 
         for i in range(num_objects):
             bbox = bboxes[i]
@@ -187,7 +186,7 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            if ycenter < limy:
+            if ycenter < 100:
                 deleted_indx.append(i)
                 continue
 
@@ -226,7 +225,7 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        limy = 175
+        limy = 0
 
         #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
         
