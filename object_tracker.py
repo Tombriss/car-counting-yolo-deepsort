@@ -216,10 +216,10 @@ def main(_argv):
 
         #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
         
-        center_coordinates = (original_w // 2, 0)
+        center_coordinates = (original_w // 2, -300)
         
         # Radius of circle
-        radius = 250
+        radius = 500
         
         # Blue color in BGR
         color = (0, 255, 0)
