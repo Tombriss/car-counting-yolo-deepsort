@@ -218,9 +218,6 @@ def main(_argv):
         
         center_coordinates = (original_w // 2, -300)
         
-        # Radius of circle
-        radius = 500
-        
         # Blue color in BGR
         color = (0, 255, 0)
         
@@ -229,7 +226,9 @@ def main(_argv):
         
         # Using cv2.circle() method
         # Draw a circle with blue line borders of thickness of 2 px
-        cv2.circle(frame, center_coordinates, radius, color, thickness)
+        cv2.circle(frame, center_coordinates, 500, color, thickness)
+
+        cv2.circle(frame, center_coordinates, 800, color, thickness)
 
         # update tracks
         data = []
