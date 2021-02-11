@@ -186,9 +186,9 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            # if ycenter < 90:
-            #     deleted_indx.append(i)
-            #     continue
+            if ycenter < 90:
+                deleted_indx.append(i)
+                continue
 
 
             class_indx = int(classes[i])
@@ -239,9 +239,9 @@ def main(_argv):
         
         # Using cv2.circle() method
         # Draw a circle with blue line borders of thickness of 2 px
-        # cv2.circle(frame, center_coordinates, 700, color, thickness)
+        cv2.circle(frame, center_coordinates, 700, color, thickness)
 
-        # cv2.circle(frame, center_coordinates, 900, color, thickness)
+        cv2.circle(frame, center_coordinates, 900, color, thickness)
 
         # update tracks
         data = []
