@@ -186,9 +186,9 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            if ycenter < 90:
-                deleted_indx.append(i)
-                continue
+            # if ycenter < 90:
+            #     deleted_indx.append(i)
+            #     continue
 
 
             class_indx = int(classes[i])
@@ -225,9 +225,9 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        limy = 155
+        limy = 0 # 155
 
-        cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
+        #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
         
         center_coordinates = (original_w // 2, -500)
         
