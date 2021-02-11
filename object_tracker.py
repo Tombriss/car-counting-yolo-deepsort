@@ -239,9 +239,12 @@ def main(_argv):
         
         # Using cv2.circle() method
         # Draw a circle with blue line borders of thickness of 2 px
-        cv2.circle(frame, center_coordinates, 700, color, thickness)
 
-        cv2.circle(frame, center_coordinates, 900, color, thickness)
+        r1,r2 = 700, 900
+
+        cv2.circle(frame, center_coordinates, r1, color, thickness)
+
+        cv2.circle(frame, center_coordinates, r2, color, thickness)
 
         # update tracks
         data = []
@@ -258,6 +261,11 @@ def main(_argv):
             ycenter = (ymin+ymax)/2
 
             if ycenter < limy:
+                continue
+
+            rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
+
+            if r1**2 < rad_pos_sq < r2**2:
                 continue
 
 
