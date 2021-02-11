@@ -225,9 +225,9 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        limy = 0
+        limy = 155
 
-        #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
+        cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
         
         center_coordinates = (original_w // 2, -500)
         
@@ -239,9 +239,9 @@ def main(_argv):
         
         # Using cv2.circle() method
         # Draw a circle with blue line borders of thickness of 2 px
-        cv2.circle(frame, center_coordinates, 700, color, thickness)
+        # cv2.circle(frame, center_coordinates, 700, color, thickness)
 
-        cv2.circle(frame, center_coordinates, 900, color, thickness)
+        # cv2.circle(frame, center_coordinates, 900, color, thickness)
 
         # update tracks
         data = []
