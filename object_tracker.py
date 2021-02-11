@@ -70,8 +70,8 @@ def main(_argv):
         interpreter.allocate_tensors()
         input_details = interpreter.get_input_details()
         output_details = interpreter.get_output_details()
-        print(input_details)
-        print(output_details)
+        # print(input_details)
+        # print(output_details)
     # otherwise load standard tensorflow saved model
     else:
         saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
@@ -110,7 +110,7 @@ def main(_argv):
             image = Image.fromarray(frame)
             timestamps.append(vid.get(cv2.CAP_PROP_POS_MSEC))
         else:
-            print('Video has ended or failed, try a different video format!')
+            print('Video has ended')
             break
         frame_num +=1
         print('Frame #: ', frame_num)
@@ -199,9 +199,9 @@ def main(_argv):
                 names.append(class_name)
         names = np.array(names)
         count = len(names)
-        if FLAGS.count:
-            cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
-            print("Objects being tracked: {}".format(count))
+        # if FLAGS.count:
+        #     cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        #     print("Objects being tracked: {}".format(count))
         # delete detections that are not in allowed_classes
         bboxes = np.delete(bboxes, deleted_indx, axis=0)
         scores = np.delete(scores, deleted_indx, axis=0)
@@ -271,9 +271,9 @@ def main(_argv):
             cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
 
         # if enable info flag then print details about each track
-            if FLAGS.info:
-                print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
-                print("Center : ({},{})".format(xcenter,ycenter))
+            # if FLAGS.info:
+            #     print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
+            #     print("Center : ({},{})".format(xcenter,ycenter))
 
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
@@ -287,7 +287,7 @@ def main(_argv):
         cv2.putText(frame, str(n_vehicules), (original_w - 200,100), font, 3, (0, 255, 0), 2, cv2.LINE_AA)
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
-        print("FPS: %.2f" % fps)
+        # print("FPS: %.2f" % fps)
 
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
