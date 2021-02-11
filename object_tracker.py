@@ -265,7 +265,7 @@ def main(_argv):
 
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
-            if r1**2 < rad_pos_sq or rad_pos_sq > r2**2:
+            if r1**2 > rad_pos_sq or rad_pos_sq > r2**2:
                 continue
 
 
