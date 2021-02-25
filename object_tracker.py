@@ -157,7 +157,6 @@ def main(_argv):
 
         # format bounding boxes from normalized ymin, xmin, ymax, xmax ---> xmin, ymin, width, height
         original_h, original_w, _ = frame.shape
-        print(original_h,original_w)
 
         bboxes = utils.format_boxes(bboxes, original_h, original_w)
 
@@ -185,7 +184,7 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            if ycenter < 90:
+            if ycenter < 0.125*original_h:
                 deleted_indx.append(i)
                 continue
 
@@ -228,7 +227,7 @@ def main(_argv):
 
         #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
         
-        center_coordinates = (original_w // 2, -500)
+        center_coordinates = (original_w // 2, -int(0.694*original_h) )
         
         # Blue color in BGR
         color = (0, 255, 0)
@@ -239,7 +238,7 @@ def main(_argv):
         # Using cv2.circle() method
         # Draw a circle with blue line borders of thickness of 2 px
 
-        r1,r2 = 700, 900
+        r1,r2 = int(0.972*original_h), int(1.25*original_h)
 
         cv2.circle(frame, center_coordinates, r1, color, thickness)
 
