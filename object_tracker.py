@@ -128,7 +128,7 @@ def main(_argv):
             # run detections using yolov3 if flag is set
             boxes, pred_conf = filter_boxes(pred[0], pred[1], score_threshold=0.25,
                                             input_shape=tf.constant([input_size, input_size]))
-                                            
+
         else:
             batch_data = tf.constant(image_data)
             pred_bbox = infer(batch_data)
@@ -157,6 +157,8 @@ def main(_argv):
 
         # format bounding boxes from normalized ymin, xmin, ymax, xmax ---> xmin, ymin, width, height
         original_h, original_w, _ = frame.shape
+        print(original_h,original_w)
+
         bboxes = utils.format_boxes(bboxes, original_h, original_w)
 
         # store all predictions in one parameter for simplicity when calling functions
