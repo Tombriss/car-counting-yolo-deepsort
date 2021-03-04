@@ -28,6 +28,7 @@ import pandas as pd
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
+flags.DEFINE_float('fps_factor', 3.0, 'the fps goal of the whole algorithm will be fps/fps_factor. fps_factor = 1 is ambitious to get good results. Something around 3 is ok.')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
@@ -89,7 +90,7 @@ def main(_argv):
     df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
     fps_video = vid.get(cv2.CAP_PROP_FPS)
-    fps_video_goal = 10
+    fps_video_goal = fps_video / FLAGS.fps_factor
 
     jump_every = int(fps_video / fps_video_goal)
 
@@ -238,11 +239,11 @@ def main(_argv):
             ycenter = (ymin+ymax)/2
 
             area_bb = abs( ( (xmax-xmin) / original_h ) * ( (ymax-ymin)  / original_w ) )
-            print(track.track_id," ",area_bb)
+            #print(track.track_id," ",area_bb)
 
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
-            if r1**2 > rad_pos_sq or rad_pos_sq > r2**2:
+            if r1**2 > rad_pos_sq or rad_pos_sq > r2**2 or area < 0.0008 or area > 0.055 :
                 continue
 
 
