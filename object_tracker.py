@@ -108,6 +108,7 @@ def main(_argv):
     fps_pipeline_list = []
 
     start_time = time.time()
+    overall_start_time = time.time()
 
     while True:
 
@@ -304,7 +305,10 @@ def main(_argv):
         
     
     if fps_pipeline_list:
-        print("average fps of all pipeline :",sum(fps_pipeline_list)/len(fps_pipeline_list))
+        print("average fps of all pipeline : ", sum(fps_pipeline_list) / len(fps_pipeline_list))
+        print("perceived total fps : ", frame_num / (time.time() - overall_start_time))
+        print("execution took : ", time.time() - overall_start_time)
+        
     df_final.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
