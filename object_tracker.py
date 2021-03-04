@@ -299,12 +299,12 @@ def main(_argv):
 
         real_fps_pipeline = 1.0 / (time.time() - start_time)
         start_time = time.time()
-        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / fps_video : %.2f" % fps_video)
+        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / fps output video : %.2f" % fps_subsampled_video)
         fps_pipeline_list.append(real_fps_pipeline)
         
     
     if fps_pipeline_list:
-        print("average fps :",sum(fps_pipeline_list)/len(fps_pipeline_list))
+        print("average fps of all pipeline :",sum(fps_pipeline_list)/len(fps_pipeline_list))
     df_final.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
