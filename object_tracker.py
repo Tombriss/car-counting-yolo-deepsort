@@ -37,7 +37,7 @@ flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_float('nms', 0.5, 'nms max overlap') # 1
 flags.DEFINE_float('cosine', 0.2, 'max cosine distance') # 0.4
-flags.DEFINE_float('onlycsv', False, 'computer output video or just output csv')
+flags.DEFINE_boolean('onlycsv', False, 'computer output video or just output csv')
 
 def main(_argv):
     # Definition of the parameters
