@@ -89,7 +89,7 @@ def main(_argv):
     df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
     fps_video = vid.get(cv2.CAP_PROP_FPS)
-    fps_video_goal = 2
+    fps_video_goal = 10
 
     jump_every = int(fps_video / fps_video_goal)
 
@@ -238,7 +238,7 @@ def main(_argv):
             ycenter = (ymin+ymax)/2
 
             area_bb = abs( ( (xmax-xmin) / original_h ) * ( (ymax-ymin)  / original_w ) )
-            print(area_bb)
+            print(track.track_id," ",area_bb)
 
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
