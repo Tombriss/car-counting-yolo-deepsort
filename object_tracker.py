@@ -106,7 +106,7 @@ def main(_argv):
 
         
 
-        if frame%jump_every == 0:
+        if frame_num % jump_every == 0:
             continue
 
         if return_value:
