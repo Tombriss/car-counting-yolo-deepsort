@@ -78,7 +78,7 @@ def main(_argv):
         # by default VideoCapture returns float instead of int
         width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = int(vid.get(cv2.CAP_PROP_FPS))
+        fps_video = int(vid.get(cv2.CAP_PROP_FPS))
         codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
         out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
 
@@ -88,11 +88,27 @@ def main(_argv):
     data = []
     df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
-    fps = vid.get(cv2.CAP_PROP_FPS)
+    fps_video = vid.get(cv2.CAP_PROP_FPS)
+    fps_video_goal = 2
+
+    jump_every = int(fps_video / fps_video_goal)
+
+    fps_video = fps_video / jump_every
+    
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
+    
+
 
     while True:
         return_value, frame = vid.read()
+
+        frame_num +=1
+
+        
+
+        if frame%jump_every == 0:
+            continue
+
         if return_value:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image = Image.fromarray(frame)
@@ -100,8 +116,7 @@ def main(_argv):
         else:
             print('Video has ended')
             break
-        frame_num +=1
-        print('Frame #: ', frame_num)
+
         frame_size = frame.shape[:2]
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.
@@ -222,6 +237,9 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
+            area_bb = abs( ( (xmax-xmin) / original_h ) * ( (ymax-ymin)  / original_w ) )
+            print(area_bb)
+
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
             if r1**2 > rad_pos_sq or rad_pos_sq > r2**2:
@@ -247,7 +265,7 @@ def main(_argv):
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
         df_final = df_final.append(df_data)
-        clean_data = df_final.groupby("car").filter(lambda x: len(x) > 15)
+        clean_data = df_final.groupby("car").filter(lambda x: len(x) > fps_vid / 2)
         n_vehicules = clean_data["car"].unique().shape[0]
 
         # draw number vehicules on image
@@ -257,8 +275,8 @@ def main(_argv):
             cv2.putText(frame, str(n_vehicules), (original_w - int(0.156*original_w),int(0.139*original_h)), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
         
         # calculate frames per second of running detections
-        fps = 1.0 / (time.time() - start_time)
-        # print("FPS: %.2f" % fps)
+        fps_detection = 1.0 / (time.time() - start_time)
+        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % fps_detection, " / fps_video : %.2f" % fps_video)
 
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
