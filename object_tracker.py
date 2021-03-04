@@ -78,9 +78,9 @@ def main(_argv):
         # by default VideoCapture returns float instead of int
         width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps_video = int(vid.get(cv2.CAP_PROP_FPS))
+        fps_detection = fps_video = int(vid.get(cv2.CAP_PROP_FPS))
         codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
-        out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
+        out = cv2.VideoWriter(FLAGS.output, codec, fps_detection, (width, height))
 
     frame_num = 0
     # while video is running
