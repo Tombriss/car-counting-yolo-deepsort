@@ -28,7 +28,7 @@ import pandas as pd
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_float('fps_factor', 3.0, 'the fps goal of the whole algorithm will be fps/fps_factor. It will jump images to get to the goal. fps_factor = 1 is ambitious to get good results. Something around 3 is ok as detection takes around 10 fps.')
+flags.DEFINE_float('fps_factor', 1.0, 'if <= 1, can handle real time. if >= 1, too slow for real time. fps of output video approximately : fps_factor * vmoy. vmoy is the estimated average speed of the whole pipeline and is around 10.')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
@@ -79,36 +79,45 @@ def main(_argv):
         # by default VideoCapture returns float instead of int
         width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps_detection = fps_video = int(vid.get(cv2.CAP_PROP_FPS))
         codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
-        out = cv2.VideoWriter(FLAGS.output, codec, fps_detection, (width, height))
+        
 
     frame_num = 0
+    computed_frame_num = 0
     # while video is running
 
     data = []
     df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
-    fps_video = vid.get(cv2.CAP_PROP_FPS)
-    fps_video_goal = fps_video / FLAGS.fps_factor
+    fps_factor = FLAGS.fps_factor
+    fps_original_video = vid.get(cv2.CAP_PROP_FPS)
+    vmoy = 10 # average fps of the whole pipeline
 
-    jump_every = int(fps_video / fps_video_goal)
+    run_every = int(fps_original_video / ( vmoy * fps_factor )) # 3
 
-    fps_video = fps_video / jump_every
+    fps_subsampled_video = fps_original_video /  run_every # 10
     
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
-    
 
+    if FLAGS.output:
+        out = cv2.VideoWriter(FLAGS.output, codec, fps_subsampled_video, (width, height))
+
+    real_fps_pipeline = fps_subsampled_video
+
+    fps_pipeline_list = []
+
+    start_time = time.time()
 
     while True:
+
         return_value, frame = vid.read()
 
-        frame_num +=1
+        frame_num += 1
 
-        
-
-        if frame_num % jump_every == 0:
+        if frame_num % run_every != 0:
             continue
+
+        computed_frame_num += 1
 
         if return_value:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -122,7 +131,6 @@ def main(_argv):
         image_data = cv2.resize(frame, (input_size, input_size))
         image_data = image_data / 255.
         image_data = image_data[np.newaxis, ...].astype(np.float32)
-        start_time = time.time()
 
         batch_data = tf.constant(image_data)
         pred_bbox = infer(batch_data)
@@ -266,7 +274,7 @@ def main(_argv):
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
         df_final = df_final.append(df_data)
-        clean_data = df_final.groupby("car").filter(lambda x: len(x) > fps_video / 2)
+        clean_data = df_final.groupby("car").filter(lambda x: len(x) > real_fps_pipeline / 2)
         n_vehicules = clean_data["car"].unique().shape[0]
 
         # draw number vehicules on image
@@ -275,21 +283,28 @@ def main(_argv):
             cv2.putText(frame, str(len(data)).zfill(3), (original_w - int(0.391*original_w),int(0.139*original_h)), font, 2, (255, 0, 0), 1, cv2.LINE_AA)
             cv2.putText(frame, str(n_vehicules), (original_w - int(0.156*original_w),int(0.139*original_h)), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
         
-        # calculate frames per second of running detections
-        fps_detection = 1.0 / (time.time() - start_time)
-        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % fps_detection, " / fps_video : %.2f" % fps_video)
 
         result = np.asarray(frame)
         result = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
         if not FLAGS.dont_show:
             cv2.imshow("Output Video", result)
+
+                # calculate frames per second of running detections
         
         # if output flag is set, save video file
         if FLAGS.output and not FLAGS.onlycsv:
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
+
+        real_fps_pipeline = 1.0 / (time.time() - start_time)
+        start_time = time.time()
+        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / fps_video : %.2f" % fps_video)
+        fps_pipeline_list.append(real_fps_pipeline)
+        
     
+    if fps_pipeline_list:
+        print("average fps :",sum(fps_pipeline_list)/len(fps_pipeline_list))
     df_final.to_csv('outputs/data.csv', index=False)
     cv2.destroyAllWindows()
 
