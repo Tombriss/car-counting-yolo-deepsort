@@ -91,7 +91,8 @@ def main(_argv):
 
     fps_factor = FLAGS.fps_factor
     fps_original_video = vid.get(cv2.CAP_PROP_FPS)
-    vmoy = 10 # average fps of the whole pipeline
+    print("original fps : ",fps_original_video)
+    vmoy = 9 # average fps of the whole pipeline
 
     run_every = int(fps_original_video / ( vmoy * fps_factor )) # 3
 
@@ -289,14 +290,13 @@ def main(_argv):
 
         if not FLAGS.dont_show:
             cv2.imshow("Output Video", result)
-
-                # calculate frames per second of running detections
         
         # if output flag is set, save video file
         if FLAGS.output and not FLAGS.onlycsv:
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
 
+        # calculate frames per second of running detections
         real_fps_pipeline = 1.0 / (time.time() - start_time)
         start_time = time.time()
         print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / fps output video : %.2f" % fps_subsampled_video)
