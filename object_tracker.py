@@ -28,7 +28,7 @@ import pandas as pd
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_float('fps_factor', 3.0, 'the fps goal of the whole algorithm will be fps/fps_factor. fps_factor = 1 is ambitious to get good results. Something around 3 is ok.')
+flags.DEFINE_float('fps_factor', 3.0, 'the fps goal of the whole algorithm will be fps/fps_factor. It will jump images to get to the goal. fps_factor = 1 is ambitious to get good results. Something around 3 is ok as detection takes around 10 fps.')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
@@ -243,7 +243,7 @@ def main(_argv):
 
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
-            if r1**2 > rad_pos_sq or rad_pos_sq > r2**2 or area < 0.0008 or area > 0.055 :
+            if r1**2 > rad_pos_sq or rad_pos_sq > r2**2 or area_bb < 0.0008 or area_bb > 0.055 :
                 continue
 
 
