@@ -25,28 +25,26 @@ from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
 import pandas as pd 
 
-flags.DEFINE_string('framework', 'tf', '(tf, tflite, trt')
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_boolean('tiny', False, 'yolo or yolo-tiny')
-flags.DEFINE_string('model', 'yolov4', 'yolov3 or yolov4')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
-flags.DEFINE_float('iou', 0.45, 'iou threshold') #0.45
-flags.DEFINE_float('score', 0.5, 'score threshold') # 0.5
+flags.DEFINE_float('iou', 0.45, 'iou threshold')
+flags.DEFINE_float('score', 0.5, 'score threshold')
 flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
-flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 flags.DEFINE_float('nms', 0.5, 'nms max overlap') # 1
-flags.DEFINE_float('cosine', 0.4, 'max cosine distance') # 0.4
+flags.DEFINE_float('cosine', 0.2, 'max cosine distance') # 0.4
+flags.DEFINE_float('onlycsv', False, 'computer output video or just output csv')
 
 def main(_argv):
     # Definition of the parameters
-    max_cosine_distance = FLAGS.cosine # 0.4
-    nn_budget = None
-    nms_max_overlap = FLAGS.nms # best : 0.5 
+    max_cosine_distance = FLAGS.cosine
+    nms_max_overlap = FLAGS.nms
+
+    nn_budget = 50 # max number of vehicle to keep in memory 
     
     # initialize deep sort
     model_filename = 'model_data/mars-small128.pb'
@@ -64,18 +62,8 @@ def main(_argv):
     input_size = FLAGS.size
     video_path = FLAGS.video
 
-    # load tflite model if flag is set
-    if FLAGS.framework == 'tflite':
-        interpreter = tf.lite.Interpreter(model_path=FLAGS.weights)
-        interpreter.allocate_tensors()
-        input_details = interpreter.get_input_details()
-        output_details = interpreter.get_output_details()
-        # print(input_details)
-        # print(output_details)
-    # otherwise load standard tensorflow saved model
-    else:
-        saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
-        infer = saved_model_loaded.signatures['serving_default']
+    saved_model_loaded = tf.saved_model.load(FLAGS.weights, tags=[tag_constants.SERVING])
+    infer = saved_model_loaded.signatures['serving_default']
 
     # begin video capture
     try:
@@ -98,7 +86,7 @@ def main(_argv):
     # while video is running
 
     data = []
-    df_final = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
+    df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
     fps = vid.get(cv2.CAP_PROP_FPS)
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
@@ -120,28 +108,18 @@ def main(_argv):
         image_data = image_data[np.newaxis, ...].astype(np.float32)
         start_time = time.time()
 
-        # run detections on tflite if flag is set
-        if FLAGS.framework == 'tflite':
-            interpreter.set_tensor(input_details[0]['index'], image_data)
-            interpreter.invoke()
-            pred = [interpreter.get_tensor(output_details[i]['index']) for i in range(len(output_details))]
-            # run detections using yolov3 if flag is set
-            boxes, pred_conf = filter_boxes(pred[0], pred[1], score_threshold=0.25,
-                                            input_shape=tf.constant([input_size, input_size]))
-
-        else:
-            batch_data = tf.constant(image_data)
-            pred_bbox = infer(batch_data)
-            for key, value in pred_bbox.items():
-                boxes = value[:, :, 0:4]
-                pred_conf = value[:, :, 4:]
+        batch_data = tf.constant(image_data)
+        pred_bbox = infer(batch_data)
+        for key, value in pred_bbox.items():
+            boxes = value[:, :, 0:4]
+            pred_conf = value[:, :, 4:]
 
         boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
             boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
             scores=tf.reshape(
                 pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
-            max_output_size_per_class=50,
-            max_total_size=50,
+            max_output_size_per_class=100,
+            max_total_size=100,
             iou_threshold=FLAGS.iou,
             score_threshold=FLAGS.score
         )
@@ -166,8 +144,6 @@ def main(_argv):
         # read in all class names from config
         class_names = utils.read_class_names(cfg.YOLO.CLASSES)
 
-        # by default allow all classes in .names file
-        #allowed_classes = list(class_names.values())
         
         # custom allowed classes (uncomment line below to customize tracker for only people)
         allowed_classes = ["car","truck","motorbike"]
@@ -196,11 +172,7 @@ def main(_argv):
             else:
                 names.append(class_name)
         names = np.array(names)
-        count = len(names)
-        # if FLAGS.count:
-        #     cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
-        #     print("Objects being tracked: {}".format(count))
-        # delete detections that are not in allowed_classes
+
         bboxes = np.delete(bboxes, deleted_indx, axis=0)
         scores = np.delete(scores, deleted_indx, axis=0)
 
@@ -209,8 +181,7 @@ def main(_argv):
         detections = [Detection(bbox, score, class_name, feature) for bbox, score, class_name, feature in zip(bboxes, scores, names, features)]
 
         #initialize color map
-        cmap = plt.get_cmap('tab20b')
-        colors = [cmap(i)[:3] for i in np.linspace(0, 1, 20)]
+
 
         # run non-maxima supression
         boxs = np.array([d.tlwh for d in detections])
@@ -223,26 +194,19 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        limy = 0 # 155
-
-        #cv2.line(frame, (0, limy), (original_w, limy), (0, 255, 0), thickness=2)
-        
+        r1,r2 = int(0.972*original_h), int(1.25*original_h) # detection zone : between the two circles
         center_coordinates = (original_w // 2, -int(0.694*original_h) )
-        
-        # Blue color in BGR
-        color = (0, 255, 0)
-        
-        # Line thickness of 2 px
-        thickness = 1
-        
-        # Using cv2.circle() method
-        # Draw a circle with blue line borders of thickness of 2 px
 
-        r1,r2 = int(0.972*original_h), int(1.25*original_h)
+        if not FLAGS.onlycsv:
 
-        cv2.circle(frame, center_coordinates, r1, color, thickness)
+            cmap = plt.get_cmap('tab20b')
+            colors = [cmap(i)[:3] for i in np.linspace(0, 1, 20)]
 
-        cv2.circle(frame, center_coordinates, r2, color, thickness)
+            color = (0, 255, 0)
+            thickness = 1
+
+            cv2.circle(frame, center_coordinates, r1, color, thickness)
+            cv2.circle(frame, center_coordinates, r2, color, thickness)
 
         # update tracks
         data = []
@@ -258,9 +222,6 @@ def main(_argv):
             xcenter = (xmin+xmax)/2
             ycenter = (ymin+ymax)/2
 
-            if ycenter < limy:
-                continue
-
             rad_pos_sq = (xcenter - center_coordinates[0])**2 + (ycenter - center_coordinates[1])**2
 
             if r1**2 > rad_pos_sq or rad_pos_sq > r2**2:
@@ -270,16 +231,18 @@ def main(_argv):
             data.append([track.track_id,frame_num,timestamps[-1],int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]),class_name])
             
         # draw bbox on screen
-            color = colors[int(track.track_id) % len(colors)]
-            color = [i * 255 for i in color]
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
-            cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
+
+            if not FLAGS.onlycsv:
+                color = colors[int(track.track_id) % len(colors)]
+                color = [i * 255 for i in color]
+                cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
+                cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
+                cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
 
         # if enable info flag then print details about each track
-            # if FLAGS.info:
-            #     print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
-            #     print("Center : ({},{})".format(xcenter,ycenter))
+            if FLAGS.info:
+                print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
+                print("Center : ({},{})".format(xcenter,ycenter))
 
 
         df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
@@ -288,9 +251,11 @@ def main(_argv):
         n_vehicules = clean_data["car"].unique().shape[0]
 
         # draw number vehicules on image
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(frame, str(len(data)).zfill(3), (original_w - int(0.391*original_w),int(0.139*original_h)), font, 2, (255, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(frame, str(n_vehicules), (original_w - int(0.156*original_w),int(0.139*original_h)), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
+        if not FLAGS.onlycsv:
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            cv2.putText(frame, str(len(data)).zfill(3), (original_w - int(0.391*original_w),int(0.139*original_h)), font, 2, (255, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(frame, str(n_vehicules), (original_w - int(0.156*original_w),int(0.139*original_h)), font, 2, (0, 255, 0), 1, cv2.LINE_AA)
+        
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
         # print("FPS: %.2f" % fps)
@@ -302,7 +267,7 @@ def main(_argv):
             cv2.imshow("Output Video", result)
         
         # if output flag is set, save video file
-        if FLAGS.output:
+        if FLAGS.output and not FLAGS.onlycsv:
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'): break
     
