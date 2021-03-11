@@ -273,13 +273,14 @@ def main(_argv):
         if frame_num > 5:
             real_fps_pipeline = 1.0 / (time.time() - start_time)
             run_every = 1 + int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
+            fps_subsampled_video = fps_original_video /  run_every 
         start_time = time.time()
         print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
         fps_pipeline_list.append(real_fps_pipeline)
 
 
         df_data = pd.DataFrame(data,columns =['vehicule_id', 'frame','time','xmin','ymin','xmax','ymax','type'])
-        df_data["fps"] = real_fps_pipeline
+        df_data["fps"] = fps_subsampled_video
         df_final = df_final.append(df_data)
         clean_data = df_final.groupby("vehicule_id").filter(lambda x: len(x)/x["fps"].median() > 0.5) # la voiture doit être présente plus de 0.5 secondes pour être comptée
         n_vehicules = clean_data["vehicule_id"].unique().shape[0]
