@@ -95,18 +95,14 @@ def main(_argv):
     vmoy = 9 # average fps of the whole pipeline
 
     run_every = int(fps_original_video / ( vmoy * fps_factor )) # 3
-
     fps_subsampled_video = fps_original_video /  run_every # 10
-    
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
 
     if FLAGS.output:
-        out = cv2.VideoWriter(FLAGS.output, codec, fps_subsampled_video, (width, height))
+        out = cv2.VideoWriter(FLAGS.output, codec, fps_original_video, (width, height))
 
     real_fps_pipeline = fps_subsampled_video
-
     fps_pipeline_list = []
-
     start_time = time.time()
     overall_start_time = time.time()
 
@@ -294,13 +290,16 @@ def main(_argv):
         
         # if output flag is set, save video file
         if FLAGS.output and not FLAGS.onlycsv:
-            out.write(result)
+            for i in range(run_every):
+                out.write(result)
+
         if cv2.waitKey(1) & 0xFF == ord('q'): break
 
         # calculate frames per second of running detections
         real_fps_pipeline = 1.0 / (time.time() - start_time)
+        run_every = int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
         start_time = time.time()
-        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / fps output video : %.2f" % fps_subsampled_video)
+        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
         fps_pipeline_list.append(real_fps_pipeline)
         
     
