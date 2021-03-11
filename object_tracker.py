@@ -92,9 +92,9 @@ def main(_argv):
     fps_factor = FLAGS.fps_factor
     fps_original_video = vid.get(cv2.CAP_PROP_FPS)
     print("original fps : ",fps_original_video)
-    vmoy = 9 # average fps of the whole pipeline
+    vmoy = 7 # average fps of the whole pipeline
 
-    run_every = int(fps_original_video / ( vmoy * fps_factor )) # 3
+    run_every = 1 + int(fps_original_video / ( vmoy * fps_factor )) # 3
     fps_subsampled_video = fps_original_video /  run_every # 10
     timestamps = [vid.get(cv2.CAP_PROP_POS_MSEC)]
 
@@ -296,9 +296,9 @@ def main(_argv):
         if cv2.waitKey(1) & 0xFF == ord('q'): break
 
         # calculate frames per second of running detections
-        if frame_num > 50:
+        if frame_num > 20:
             real_fps_pipeline = 1.0 / (time.time() - start_time)
-            run_every = int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
+            run_every = 1 + int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
         start_time = time.time()
         print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
         fps_pipeline_list.append(real_fps_pipeline)
