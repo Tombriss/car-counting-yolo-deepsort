@@ -28,7 +28,7 @@ import pandas as pd
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_float('fps_factor', 1.0, 'if <= 1, can handle real time. if >= 1, too slow for real time. fps of output video approximately : fps_factor * vmoy. vmoy is the estimated average speed of the whole pipeline and is around 10.')
+flags.DEFINE_float('fps_factor', 1.0, 'if <= 1, can handle real time. if >= 1, too slow for real time. For original video with 30 fps, set it to 5 to compute on all frames. fps of output video approximately : fps_factor * vmoy. vmoy is the estimated average speed of the whole pipeline and is around 7.')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
@@ -87,7 +87,7 @@ def main(_argv):
     # while video is running
 
     data = []
-    df_final = pd.DataFrame(data,columns =['vehicule', 'frame','time','xmin','ymin','xmax','ymax','type'])
+    df_final = pd.DataFrame(data,columns =['vehicule_id', 'frame','time','xmin','ymin','xmax','ymax','type'])
 
     fps_factor = FLAGS.fps_factor
     fps_original_video = vid.get(cv2.CAP_PROP_FPS)
@@ -269,11 +269,20 @@ def main(_argv):
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
                 print("Center : ({},{})".format(xcenter,ycenter))
 
+                # calculate frames per second of running detections
+        if frame_num > 20:
+            real_fps_pipeline = 1.0 / (time.time() - start_time)
+            run_every = 1 + int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
+        start_time = time.time()
+        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
+        fps_pipeline_list.append(real_fps_pipeline)
 
-        df_data = pd.DataFrame(data,columns =['car', 'frame','time','xmin','ymin','xmax','ymax','type'])
+
+        df_data = pd.DataFrame(data,columns =['vehicule_id', 'frame','time','xmin','ymin','xmax','ymax','type'])
+        df_data["fps"] = real_fps_pipeline
         df_final = df_final.append(df_data)
-        clean_data = df_final.groupby("car").filter(lambda x: len(x) > real_fps_pipeline / 2)
-        n_vehicules = clean_data["car"].unique().shape[0]
+        clean_data = df_final.groupby("vehicule_id").filter(lambda x: len(x) > real_fps_pipeline / 2)
+        n_vehicules = clean_data["vehicule_id"].unique().shape[0]
 
         # draw number vehicules on image
         if not FLAGS.onlycsv:
@@ -294,14 +303,6 @@ def main(_argv):
                 out.write(result)
 
         if cv2.waitKey(1) & 0xFF == ord('q'): break
-
-        # calculate frames per second of running detections
-        if frame_num > 20:
-            real_fps_pipeline = 1.0 / (time.time() - start_time)
-            run_every = 1 + int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
-        start_time = time.time()
-        print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
-        fps_pipeline_list.append(real_fps_pipeline)
         
     
     if fps_pipeline_list:
