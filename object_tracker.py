@@ -281,7 +281,7 @@ def main(_argv):
         df_data = pd.DataFrame(data,columns =['vehicule_id', 'frame','time','xmin','ymin','xmax','ymax','type'])
         df_data["fps"] = real_fps_pipeline
         df_final = df_final.append(df_data)
-        clean_data = df_final.groupby("vehicule_id").filter(lambda x: len(x) > real_fps_pipeline / 2)
+        clean_data = df_final.groupby("vehicule_id").filter(lambda x: len(x)/x["fps"].median() > 0.5) # la voiture doit être présente plus de 0.5 secondes pour être comptée
         n_vehicules = clean_data["vehicule_id"].unique().shape[0]
 
         # draw number vehicules on image
