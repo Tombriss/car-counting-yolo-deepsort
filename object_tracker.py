@@ -270,7 +270,7 @@ def main(_argv):
                 print("Center : ({},{})".format(xcenter,ycenter))
 
                 # calculate frames per second of running detections
-        if frame_num > 20:
+        if frame_num > 5:
             real_fps_pipeline = 1.0 / (time.time() - start_time)
             run_every = 1 + int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
         start_time = time.time()
