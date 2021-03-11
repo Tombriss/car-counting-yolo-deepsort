@@ -296,8 +296,9 @@ def main(_argv):
         if cv2.waitKey(1) & 0xFF == ord('q'): break
 
         # calculate frames per second of running detections
-        real_fps_pipeline = 1.0 / (time.time() - start_time)
-        run_every = int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
+        if frame_num > 50:
+            real_fps_pipeline = 1.0 / (time.time() - start_time)
+            run_every = int(fps_original_video / ( real_fps_pipeline * fps_factor )) # 3
         start_time = time.time()
         print('Frame #: ', frame_num, "--> FPS detection : %.2f" % real_fps_pipeline, " / run every : %.2f" % run_every)
         fps_pipeline_list.append(real_fps_pipeline)
