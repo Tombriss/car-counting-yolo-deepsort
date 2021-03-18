@@ -28,13 +28,13 @@ import pandas as pd
 flags.DEFINE_string('weights', './checkpoints/yolov4-416',
                     'path to weights file')
 flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_float('fps_factor', 1.0, 'if <= 1, can handle real time. if >= 1, too slow for real time. For original video with 30 fps, set it to 5 to compute on all frames. fps of output video approximately : fps_factor * vmoy. vmoy is the estimated average speed of the whole pipeline and is around 7.')
+flags.DEFINE_float('fps_factor', 10.0, 'if <= 1, can handle real time. if >= 1, too slow for real time. For original video with 30 fps, set it to 5 to compute on all frames. fps of output video approximately : fps_factor * vmoy. vmoy is the estimated average speed of the whole pipeline and is around 7.')
 flags.DEFINE_string('video', './data/video/test.mp4', 'path to input video or set to 0 for webcam')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
 flags.DEFINE_float('iou', 0.45, 'iou threshold')
 flags.DEFINE_float('score', 0.5, 'score threshold')
-flags.DEFINE_boolean('dont_show', False, 'dont show video output')
+flags.DEFINE_boolean('dont_show', True, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_float('nms', 0.5, 'nms max overlap') # 1
 flags.DEFINE_float('cosine', 0.2, 'max cosine distance') # 0.4
