@@ -311,7 +311,9 @@ def main(_argv):
         print("perceived total fps : ", frame_num / (time.time() - overall_start_time))
         print("execution took : ", time.time() - overall_start_time)
         
+    clean_data = df_final.groupby("vehicule_id").filter(lambda x: len(x)/x["fps"].median() > 0.5)
     df_final.to_csv('outputs/data.csv', index=False)
+    
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
